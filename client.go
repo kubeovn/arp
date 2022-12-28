@@ -67,14 +67,9 @@ func New(ifi *net.Interface, p net.PacketConn) (*Client, error) {
 // to allow an arbitrary net.PacketConn to be used in a Client, so testing
 // is easier to accomplish.
 func newClient(ifi *net.Interface, p net.PacketConn, addrs []netip.Addr) (*Client, error) {
-	ip, err := firstIPv4Addr(addrs)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Client{
 		ifi: ifi,
-		ip:  ip,
+		ip:  firstIPv4Addr(addrs),
 		p:   p,
 	}, nil
 }
@@ -233,11 +228,11 @@ func (c Client) HardwareAddr() net.HardwareAddr {
 
 // firstIPv4Addr attempts to retrieve the first detected IPv4 address from an
 // input slice of network addresses.
-func firstIPv4Addr(addrs []netip.Addr) (netip.Addr, error) {
+func firstIPv4Addr(addrs []netip.Addr) netip.Addr {
 	for _, a := range addrs {
 		if a.Is4() {
-			return a, nil
+			return a
 		}
 	}
-	return netip.Addr{}, errNoIPv4Addr
+	return netip.AddrFrom4([4]byte{0, 0, 0, 0})
 }
